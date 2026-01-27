@@ -7,96 +7,43 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <header class="wrap">
-    <h1>Badminton Team Randomizer</h1>
-    <p class="muted">Looks fully random in front of everyone — with optional hidden configs.</p>
-  </header>
+  <main class="container">
+    <header class="header">
+      <h1>Team Randomizer</h1>
+      <p class="sub">Paste player names (one per line). Click <b>Randomizer</b> to generate teams.</p>
+    </header>
 
-  <main class="wrap grid">
     <section class="card">
-      <h2>Setup</h2>
-
-      <label class="row">
-        <span>Mode</span>
-        <select id="mode">
-          <option value="mixed">Mixed (single list)</option>
-          <option value="pools_hidden">Hidden Pools (A+B pairing)</option>
-        </select>
-      </label>
-
-      <div id="mixedBlock">
-        <label class="label">Players (one per line)</label>
-        <textarea id="playersMixed" rows="10" spellcheck="false"></textarea>
-        <label class="row">
-          <span>Team size</span>
-          <select id="teamSize">
-            <option value="2">2 (pair)</option>
-            <option value="4">4 (2v2 group of 4)</option>
-          </select>
-        </label>
-      </div>
-
-      <div id="poolsBlock" class="hidden">
-        <div class="two">
-          <div>
-            <label class="label">Pool A (hidden) — one per line</label>
-            <textarea id="poolA" rows="10" spellcheck="false"></textarea>
-          </div>
-          <div>
-            <label class="label">Pool B (hidden) — one per line</label>
-            <textarea id="poolB" rows="10" spellcheck="false"></textarea>
-          </div>
-        </div>
-        <p class="muted small">UI never shows “A/B” during results — it just prints “Team 1, Team 2…”</p>
-      </div>
+      <label for="names" class="label">Names (one per line)</label>
+      <textarea id="names" class="textarea" placeholder="e.g.
+Vishal
+Martin
+Chandu
+Illango"></textarea>
 
       <div class="row">
-        <label class="check">
-          <input type="checkbox" id="avoidRepeats" checked />
-          Avoid repeat pairs (uses this device’s history)
+        <button id="randomizeBtn" class="btn">Randomizer</button>
+        <button id="clearBtn" class="btn btn-secondary" type="button">Clear</button>
+        <div class="spacer"></div>
+
+        <label class="checkbox">
+          <input id="allowSingles" type="checkbox" checked />
+          Allow a single if odd count
         </label>
       </div>
 
-      <label class="row">
-        <span>Seed (optional)</span>
-        <input id="seed" placeholder="e.g., 20260126 or leave blank" />
-      </label>
-
-      <div class="actions">
-        <button id="generate" class="primary">Generate Teams</button>
-        <button id="reset">Reset Inputs</button>
-      </div>
-
-      <details class="details">
-        <summary>Quick load your sample players</summary>
-        <button id="loadSample" class="ghost">Load Sample (your 20)</button>
-      </details>
+      <div id="status" class="status" aria-live="polite"></div>
     </section>
 
     <section class="card">
-      <h2>Teams</h2>
-      <div id="status" class="muted small">Ready.</div>
+      <h2 class="h2">Teams</h2>
       <div id="teams" class="teams"></div>
-
-      <div class="actions">
-        <button id="copy" class="ghost">Copy Teams</button>
-        <button id="csv" class="ghost">Export CSV</button>
-        <button id="clearHistory" class="danger">Clear Repeat History</button>
-      </div>
-
-      <details class="details">
-        <summary>How “Avoid repeat pairs” works</summary>
-        <p class="small muted">
-          When enabled, the site remembers past pairings on this device (localStorage) and retries
-          shuffling until it finds teams without repeating any previous within-team pair.
-        </p>
-      </details>
     </section>
-  </main>
 
-  <footer class="wrap muted small">
-    Tip: Use “Hidden Pools” when you need controlled pairing but want it to feel fully random.
-  </footer>
+    <footer class="footer">
+      <small>Tip: keep your Group A/B in <code>config.json</code>. This page runs fully in the browser.</small>
+    </footer>
+  </main>
 
   <script src="app.js"></script>
 </body>
