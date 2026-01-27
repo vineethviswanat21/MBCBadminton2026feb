@@ -101,7 +101,7 @@ async function loadConfig() {
     const res = await fetch("./config.json", { cache: "no-store" });
     if (!res.ok) throw new Error("config.json not found");
     CONFIG = await res.json();
-    elStatus.textContent = "Config loaded. Paste names and click Randomizer.";
+    elStatus.textContent = "Paste names and click Randomizer.";
   } catch (e) {
     CONFIG = { groupA: [], groupB: [] };
     elStatus.textContent =
