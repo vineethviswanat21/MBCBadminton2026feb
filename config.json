@@ -1,0 +1,9 @@
+{
+  "mode": "mixed",
+  "team_size": 2,
+  "players": ["Vishal","Chandu","Sasi","Shibin","Kurian","Karthik","Sanath","Chary","Raviteja","Siddharth",
+              "Martin","Illango","Praveen","Vikas","Ram","Vivek","Guru","Ajay","Vijay","Vineeth"],
+  "avoid_repeat_pairs": true,
+  "history_file": "history.json",
+  "seed": null
+}
