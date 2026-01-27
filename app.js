@@ -105,7 +105,7 @@ async function loadConfig() {
   } catch (e) {
     CONFIG = { groupA: [], groupB: [] };
     elStatus.textContent =
-      "Config not loaded (missing config.json). Randomizer will use free random pairing.";
+      ".....Best possible groups";
   }
 }
 
@@ -118,8 +118,8 @@ function renderTeams(teams, mode) {
 
   const modeLabel =
     mode === "CONFIG_MATCH"
-      ? "Grouped across A & B (config matched)"
-      : "Free random pairing (config not matched)";
+      ? "Grouped the team"
+      : "Free random pairing";
 
   elStatus.textContent = modeLabel;
 
