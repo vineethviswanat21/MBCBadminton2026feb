@@ -1,8 +1,10 @@
 {
-  "mode": "mixed",
+  "mode": "pools_hidden",
   "team_size": 2,
-  "players": ["Vishal","Chandu","Sasi","Shibin","Kurian","Karthik","Sanath","Chary","Raviteja","Siddharth",
-              "Martin","Illango","Praveen","Vikas","Ram","Vivek","Guru","Ajay","Vijay","Vineeth"],
+  "pools": {
+    "A": ["Vishal","Chandu","Sasi","Shibin","Kurian","Karthik","Sanath","Chary","Raviteja","Siddharth"],
+    "B": ["Martin","Illango","Praveen","Vikas","Ram","Vivek","Guru","Ajay","Vijay","Vineeth"]
+  },
   "avoid_repeat_pairs": true,
   "history_file": "history.json",
   "seed": null
