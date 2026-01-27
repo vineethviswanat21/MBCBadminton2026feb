@@ -1,117 +1,166 @@
-import express from "express";
-import path from "path";
-import { fileURLToPath } from "url";
-
-const app = express();
-app.use(express.json());
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// Hidden groups (backend only)
-const GROUP_A = ["Vishal","Chandu","Sasi","Shibin","Kurian","Karthik","Sanath","Chary","Raviteja","Siddharth"];
-const GROUP_B = ["Martin","Illango","Praveen","Vikas","Ram","Vivek","Guru","Ajay","Vijay","Vineeth"];
-
-// ---- Block rules (order independent) ----
-function keyPair(a, b) {
-  return a < b ? `${a}|${b}` : `${b}|${a}`;
+// ---------- Helpers ----------
+function normalizeName(s) {
+  return s.trim().replace(/\s+/g, " ");
 }
 
-const BLOCKED_PAIRS = new Set([
-  keyPair("Vineeth", "Kurian"),
-  keyPair("Martin", "Chary"),
-  keyPair("Guru", "Siddharth"),
-  keyPair("Vijay", "Vivek"),
-  keyPair("Praveen", "Chandu"),
-]);
-
-function isBlocked(a, b) {
-  return BLOCKED_PAIRS.has(keyPair(a, b));
+function linesToList(text) {
+  return text
+    .split(/\r?\n/)
+    .map(normalizeName)
+    .filter(Boolean);
 }
 
 function shuffle(arr) {
-  const a = [...arr];
-  for (let i = a.length - 1; i > 0; i--) {
+  // Fisher-Yates
+  for (let i = arr.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
+    [arr[i], arr[j]] = [arr[j], arr[i]];
   }
-  return a;
+  return arr;
 }
 
-// In-memory decks (no repeats until exhausted)
-let deckA = [];
-let deckB = [];
-
-function resetDeck() {
-  deckA = shuffle(GROUP_A);
-  deckB = shuffle(GROUP_B);
+function caseFold(s) {
+  return s.toLocaleLowerCase();
 }
-resetDeck();
 
-/**
- * Returns ONE new pair each call, avoiding blocked combos.
- * If remaining decks cannot produce a valid pair due to block rules,
- * it reshuffles and returns 409 asking user to click again.
- */
-app.get("/api/next-pair", (req, res) => {
-  if (deckA.length === 0 || deckB.length === 0) resetDeck();
+function setEqualsCaseInsensitive(aList, bList) {
+  const a = aList.map(caseFold).sort();
+  const b = bList.map(caseFold).sort();
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return false;
+  return true;
+}
 
-  // We'll try to pick an A, then find a compatible B from remaining deckB
-  const triedA = [];
+// If input matches config set, pair A with B only.
+// Otherwise pair anyone with anyone.
+function buildTeams(inputNames, config, allowSingles) {
+  const groupA = (config?.groupA ?? []).map(normalizeName);
+  const groupB = (config?.groupB ?? []).map(normalizeName);
 
-  while (deckA.length > 0) {
-    const a = deckA.pop();
-    triedA.push(a);
+  const configAll = [...groupA, ...groupB].map(normalizeName);
 
-    // Find any B that isn't blocked with this A
-    let foundIndex = -1;
-    for (let i = deckB.length - 1; i >= 0; i--) {
-      const b = deckB[i];
-      if (!isBlocked(a, b)) {
-        foundIndex = i;
-        break;
+  const isConfigMatch = setEqualsCaseInsensitive(inputNames, configAll);
+
+  if (isConfigMatch) {
+    // Map input names to their canonical form from config to avoid minor spacing/case differences.
+    const canonMap = new Map();
+    for (const n of configAll) canonMap.set(caseFold(n), n);
+
+    const inputCanon = inputNames.map(n => canonMap.get(caseFold(n)) ?? n);
+
+    const inputA = inputCanon.filter(n => groupA.some(a => caseFold(a) === caseFold(n)));
+    const inputB = inputCanon.filter(n => groupB.some(b => caseFold(b) === caseFold(n)));
+
+    shuffle(inputA);
+    shuffle(inputB);
+
+    const teams = [];
+    const pairs = Math.min(inputA.length, inputB.length);
+    for (let i = 0; i < pairs; i++) {
+      teams.push([inputA[i], inputB[i]]);
+    }
+
+    // In theory lengths should be equal. But if config is uneven, handle leftovers.
+    const leftovers = inputA.slice(pairs).concat(inputB.slice(pairs));
+    if (leftovers.length) {
+      if (allowSingles) {
+        for (const l of leftovers) teams.push([l]);
+      } else {
+        // drop leftovers
       }
     }
 
-    if (foundIndex !== -1) {
-      const b = deckB.splice(foundIndex, 1)[0];
-
-      // Put unused triedA back into deckA (shuffle a bit to keep randomness)
-      const unusedA = triedA.slice(0, -1);
-      if (unusedA.length) deckA.push(...shuffle(unusedA));
-
-      return res.json({
-        team: [a, b],
-        remaining: Math.min(deckA.length, deckB.length),
-      });
-    }
-
-    // If no valid B exists for this A, continue with next A
+    return { teams, mode: "CONFIG_MATCH" };
   }
 
-  // No valid pairing possible with remaining deck state — reshuffle
-  resetDeck();
+  // Fallback: random pair any names
+  const pool = [...inputNames];
+  shuffle(pool);
 
-  // Feasibility check after reshuffle
-  const feasible = deckA.some(a => deckB.some(b => !isBlocked(a, b)));
-  if (!feasible) {
-    return res.status(422).json({
-      error: "No valid pairings possible with the blocked pairs provided as they played last tournament. Please relax the blocked rules.",
-    });
+  const teams = [];
+  while (pool.length >= 2) {
+    teams.push([pool.shift(), pool.shift()]);
+  }
+  if (pool.length === 1 && allowSingles) teams.push([pool.shift()]);
+
+  return { teams, mode: "FREE_RANDOM" };
+}
+
+// ---------- UI ----------
+const elNames = document.getElementById("names");
+const elBtn = document.getElementById("randomizeBtn");
+const elClear = document.getElementById("clearBtn");
+const elTeams = document.getElementById("teams");
+const elStatus = document.getElementById("status");
+const elAllowSingles = document.getElementById("allowSingles");
+
+let CONFIG = null;
+
+async function loadConfig() {
+  try {
+    const res = await fetch("./config.json", { cache: "no-store" });
+    if (!res.ok) throw new Error("config.json not found");
+    CONFIG = await res.json();
+    elStatus.textContent = "Paste names and click Randomizer.";
+  } catch (e) {
+    CONFIG = { groupA: [], groupB: [] };
+    elStatus.textContent =
+      "Config not loaded (missing config.json). Randomizer will use free random pairing.";
+  }
+}
+
+function renderTeams(teams, mode) {
+  elTeams.innerHTML = "";
+  if (!teams.length) {
+    elTeams.innerHTML = `<div class="status">No teams generated.</div>`;
+    return;
   }
 
-  return res.status(409).json({
-    error: "Blocked pairs prevented a valid next team from the remaining names. Deck reshuffled — click Next Team again.",
+  const modeLabel =
+    mode === "CONFIG_MATCH"
+      ? "Grouped across A & B (config matched)"
+      : "Free random pairing (config not matched)";
+
+  elStatus.textContent = modeLabel;
+
+  teams.forEach((t, idx) => {
+    const div = document.createElement("div");
+    div.className = "team";
+
+    const left = document.createElement("div");
+    left.className = "left";
+    const title = document.createElement("div");
+    title.innerHTML = `<span class="code">Team ${idx + 1}</span>`;
+    const names = document.createElement("div");
+    names.textContent = t.join(" + ");
+    const tag = document.createElement("div");
+    tag.className = "tag";
+    tag.textContent = t.length === 1 ? "Single" : "Doubles";
+    left.appendChild(title);
+    left.appendChild(names);
+    left.appendChild(tag);
+
+    div.appendChild(left);
+    elTeams.appendChild(div);
   });
+}
+
+elBtn.addEventListener("click", () => {
+  const input = linesToList(elNames.value);
+  if (input.length < 2) {
+    elStatus.textContent = "Please enter at least 2 names (one per line).";
+    elTeams.innerHTML = "";
+    return;
+  }
+
+  const { teams, mode } = buildTeams(input, CONFIG, elAllowSingles.checked);
+  renderTeams(teams, mode);
 });
 
-app.post("/api/reset", (req, res) => {
-  resetDeck();
-  res.json({ ok: true, remaining: Math.min(deckA.length, deckB.length) });
+elClear.addEventListener("click", () => {
+  elNames.value = "";
+  elTeams.innerHTML = "";
+  elStatus.textContent = "Cleared.";
 });
 
-// Serve frontend
-app.use(express.static(path.join(__dirname, "public")));
-
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Running on http://localhost:${PORT}`));
+loadConfig();
