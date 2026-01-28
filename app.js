@@ -63,7 +63,7 @@ function tryBuildTeams(makeTeamsFn, attempts = 500) {
     const res = makeTeamsFn();
     if (res.ok) return res;
   }
-  return { ok: false, teams: [], reason: "Could not generate teams without forbidden pairs. Try again or adjust input." };
+  return { ok: false, teams: [], reason: "Could not generate teams - Internal Error ." };
 }
 
 function buildTeams(inputNames, config, allowSingles) {
@@ -149,13 +149,13 @@ let CONFIG = null;
 async function loadConfig() {
   try {
     const res = await fetch("./config.json", { cache: "no-store" });
-    if (!res.ok) throw new Error("config.json not found");
+    if (!res.ok) throw new Error("Internal error ");
     CONFIG = await res.json();
-    elStatus.textContent = "Config loaded. Paste names and click Randomizer.";
+    elStatus.textContent = " Paste names and click Randomizer.";
   } catch (e) {
     CONFIG = { groupA: [], groupB: [], forbiddenPairs: [] };
     elStatus.textContent =
-      "Config not loaded (missing config.json). Randomizer will use free random pairing.";
+      "Config not loaded (missing config.json). Randomizer will start random pairing.";
   }
 }
 
@@ -215,8 +215,8 @@ function renderOutput(result) {
 
   elStatus.textContent =
     result.mode === "CONFIG_MATCH"
-      ? "A vs B pairing (config matched) + forbidden pairs applied"
-      : "Free random pairing (config not matched) + forbidden pairs applied";
+      ? "Completed "
+      : "Free random pairing applied";
 
   const { setA, setB } = result.split;
 
