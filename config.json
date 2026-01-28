@@ -1,4 +1,10 @@
 {
   "groupA": ["Vishal", "Chandu", "Sasi", "Shibin", "Kurian", "Karthik", "Sanath", "Chary", "Raviteja", "Siddharth"],
-  "groupB": ["Martin", "Illango", "Praveen", "Vikas", "Ram", "Vivek", "Guru", "Ajay", "Vijay", "Vineeth"]
+  "groupB": ["Martin", "Illango", "Praveen", "Vikas", "Ram", "Vivek", "Guru", "Ajay", "Vijay", "Vineeth"],
+  "forbiddenPairs": [
+    ["Vineeth", "Kurian"],
+    ["Martin", "Chary"],
+    ["Chandu", "Praveen"],
+    ["Siddharth", "Guru"]
+  ]
 }
