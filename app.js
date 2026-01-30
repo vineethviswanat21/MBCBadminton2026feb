@@ -45,22 +45,41 @@ function isForbiddenPair(a, b, forbiddenPairsSet) {
   return forbiddenPairsSet.has(normalizePairKey(a, b));
 }
 
-// Split into Set A (first 5 teams) and Set B (rest)
-function splitTeams(teams) {
-  const SET_A_COUNT = 5;
-  return { setA: teams.slice(0, SET_A_COUNT), setB: teams.slice(SET_A_COUNT) };
-}
-
 // Retry until it satisfies constraints, else fail
-function tryBuildTeams(makeTeamsFn, attempts = 800) {
+function tryBuild(makeFn, attempts = 1200) {
   for (let i = 0; i < attempts; i++) {
-    const res = makeTeamsFn();
+    const res = makeFn();
     if (res.ok) return res;
   }
-  return { ok: false, teams: [], reason: "Error 01 60" };
+  return {
+    ok: false,
+    reason:
+      "Could not generate valid teams with the given constraints (forbidden pairs). Try Randomizer again or adjust forbidden pairs."
+  };
 }
 
-function buildTeams(inputNames, config, allowSingles) {
+/**
+ * Split rule REQUIRED by you:
+ * - Set 1: 3 AB teams + 2 CC teams
+ * - Set 2: 4 AB teams + 1 CC team
+ * Total teams = 10
+ */
+function splitIntoTwoSets(abTeams, cTeams) {
+  const set1 = [];
+  const set2 = [];
+
+  // AB split: 3 in set1, 4 in set2
+  set1.push(...abTeams.slice(0, 3));
+  set2.push(...abTeams.slice(3, 7));
+
+  // C split: 2 in set1, 1 in set2
+  set1.push(...cTeams.slice(0, 2));
+  set2.push(...cTeams.slice(2, 3));
+
+  return { set1, set2 };
+}
+
+function buildTeamsWithRules(inputNames, config, allowSingles) {
   const groupA = (config?.groupA ?? []).map(normalizeName);
   const groupB = (config?.groupB ?? []).map(normalizeName);
   const groupC = (config?.groupC ?? []).map(normalizeName);
@@ -70,89 +89,99 @@ function buildTeams(inputNames, config, allowSingles) {
 
   const isConfigMatch = setEqualsCaseInsensitive(inputNames, configAll);
 
-  // Canonicalize to config names if matched (case/space friendly)
+  // Canonicalize to config names when matched
   const canonMap = new Map();
   for (const n of configAll) canonMap.set(caseFold(n), n);
   const inputCanon = inputNames.map(n => canonMap.get(caseFold(n)) ?? n);
 
-  if (isConfigMatch) {
-    const inA = inputCanon.filter(n => groupA.some(a => caseFold(a) === caseFold(n)));
-    const inB = inputCanon.filter(n => groupB.some(b => caseFold(b) === caseFold(n)));
-    const inC = inputCanon.filter(n => groupC.some(c => caseFold(c) === caseFold(n)));
-
-    // Rules:
-    // - A pairs with B only
-    // - C pairs within C only
-    // - Forbidden pairs never happen
-    const attempt = tryBuildTeams(() => {
-      const A = shuffle([...inA]);
-      const B = shuffle([...inB]);
-      const C = shuffle([...inC]);
-
+  if (!isConfigMatch) {
+    // Fallback: free random pairing (still avoid forbidden pairs)
+    const attempt = tryBuild(() => {
+      const pool = shuffle([...inputNames]);
       const teams = [];
 
-      // A-B pairing
-      if (A.length !== B.length) {
-        // With your lists A=7, B=7, so this should match.
-        // If not, we handle leftovers optionally.
-      }
-      const abPairs = Math.min(A.length, B.length);
-      for (let i = 0; i < abPairs; i++) {
-        const p1 = A[i];
-        const p2 = B[i];
+      while (pool.length >= 2) {
+        const p1 = pool.shift();
+        const p2 = pool.shift();
         if (isForbiddenPair(p1, p2, forbiddenPairsSet)) return { ok: false };
         teams.push([p1, p2]);
       }
 
-      // leftovers from A/B (only as singles if allowed)
-      const leftoversAB = A.slice(abPairs).concat(B.slice(abPairs));
-      if (leftoversAB.length) {
-        if (!allowSingles) return { ok: false };
-        for (const l of leftoversAB) teams.push([l]);
-      }
-
-      // C-C pairing
-      const cPool = [...C];
-      while (cPool.length >= 2) {
-        const p1 = cPool.shift();
-        const p2 = cPool.shift();
-        if (isForbiddenPair(p1, p2, forbiddenPairsSet)) return { ok: false };
-        teams.push([p1, p2]);
-      }
-      if (cPool.length === 1) {
-        if (!allowSingles) return { ok: false };
-        teams.push([cPool.shift()]);
-      }
+      if (pool.length === 1 && allowSingles) teams.push([pool.shift()]);
+      if (pool.length === 1 && !allowSingles) return { ok: false };
 
       return { ok: true, teams };
     });
 
-    if (!attempt.ok) return { mode: "ERROR", error: attempt.reason, teams: [] };
+    if (!attempt.ok) return { mode: "ERROR", error: attempt.reason };
 
-    const split = splitTeams(attempt.teams);
-    return { mode: "CONFIG_MATCH", teams: attempt.teams, split };
+    // Keep old display behavior: Set 1 first 5, Set 2 remaining (fallback mode only)
+    return {
+      mode: "FREE_RANDOM",
+      set1: attempt.teams.slice(0, 5),
+      set2: attempt.teams.slice(5)
+    };
   }
 
-  // If input doesn't match config set: free random pairing (still avoid forbidden pairs)
-  const attempt = tryBuildTeams(() => {
-    const pool = shuffle([...inputNames]);
-    const teams = [];
+  // Config match: STRICT RULES
+  const inA = inputCanon.filter(n => groupA.some(a => caseFold(a) === caseFold(n)));
+  const inB = inputCanon.filter(n => groupB.some(b => caseFold(b) === caseFold(n)));
+  const inC = inputCanon.filter(n => groupC.some(c => caseFold(c) === caseFold(n)));
 
-    while (pool.length >= 2) {
-      const p1 = pool.shift();
-      const p2 = pool.shift();
+  // We expect: A=7, B=7, C=6
+  // AB => 7 teams, CC => 3 teams
+  const attempt = tryBuild(() => {
+    const A = shuffle([...inA]);
+    const B = shuffle([...inB]);
+    const C = shuffle([...inC]);
+
+    // Build AB teams (A with B only)
+    const abTeams = [];
+    const abPairs = Math.min(A.length, B.length);
+
+    for (let i = 0; i < abPairs; i++) {
+      const p1 = A[i];
+      const p2 = B[i];
       if (isForbiddenPair(p1, p2, forbiddenPairsSet)) return { ok: false };
-      teams.push([p1, p2]);
+      abTeams.push([p1, p2]);
     }
-    if (pool.length === 1 && allowSingles) teams.push([pool.shift()]);
 
-    return { ok: true, teams };
+    // If leftover in A or B, only allow singles (but your counts match, so usually none)
+    const leftoversAB = A.slice(abPairs).concat(B.slice(abPairs));
+    if (leftoversAB.length) {
+      if (!allowSingles) return { ok: false };
+      for (const l of leftoversAB) abTeams.push([l]);
+    }
+
+    // Build CC teams (within C only)
+    const cTeams = [];
+    const cPool = [...C];
+
+    while (cPool.length >= 2) {
+      const p1 = cPool.shift();
+      const p2 = cPool.shift();
+      if (isForbiddenPair(p1, p2, forbiddenPairsSet)) return { ok: false };
+      cTeams.push([p1, p2]);
+    }
+
+    if (cPool.length === 1) {
+      if (!allowSingles) return { ok: false };
+      cTeams.push([cPool.shift()]);
+    }
+
+    // We need EXACT split sizes for your scenario:
+    // Set1: 3 AB + 2 C
+    // Set2: 4 AB + 1 C
+    // If CC team count isn't 3 (due to odd C), it may break the exact split.
+    if (abTeams.length < 7 || cTeams.length < 3) return { ok: false };
+
+    const { set1, set2 } = splitIntoTwoSets(abTeams, cTeams);
+    return { ok: true, set1, set2 };
   });
 
-  if (!attempt.ok) return { mode: "ERROR", error: attempt.reason, teams: [] };
+  if (!attempt.ok) return { mode: "ERROR", error: attempt.reason };
 
-  const split = splitTeams(attempt.teams);
-  return { mode: "FREE_RANDOM", teams: attempt.teams, split };
+  return { mode: "CONFIG_MATCH", set1: attempt.set1, set2: attempt.set2 };
 }
 
 // ---------- UI ----------
@@ -168,12 +197,13 @@ let CONFIG = null;
 async function loadConfig() {
   try {
     const res = await fetch("./config.json", { cache: "no-store" });
-    if (!res.ok) throw new Error("File 171 not found");
+    if (!res.ok) throw new Error("config.json not found");
     CONFIG = await res.json();
-    elStatus.textContent = "Paste names and click Randomizer.";
+    elStatus.textContent = "Config loaded. Paste names and click Randomizer.";
   } catch (e) {
     CONFIG = { groupA: [], groupB: [], groupC: [], forbiddenPairs: [] };
-    elStatus.textContent = "Randomize Teams.";
+    elStatus.textContent =
+      "Config not loaded (missing config.json). Randomizer will use free random pairing.";
   }
 }
 
@@ -230,14 +260,16 @@ function renderOutput(result) {
     return;
   }
 
-  elStatus.textContent =
-    result.mode === "CONFIG_MATCH"
-      ? "Rules applied: A-B only, C-C only + forbidden pairs"
-      : "Free random pairing (config not matched) + forbidden pairs";
+  if (result.mode === "CONFIG_MATCH") {
+    elStatus.textContent =
+      "Rules applied: A-B teams (7) + C-C teams (3). Split: Set 1 = 3 AB + 2 C, Set 2 = 4 AB + 1 C.";
+  } else {
+    elStatus.textContent =
+      "Free random pairing (config not matched) + forbidden pairs. Split: first 5 teams in Set 1, rest in Set 2.";
+  }
 
-  const { setA, setB } = result.split;
-  elTeams.appendChild(renderSet("Set A (first 5 teams)", setA));
-  elTeams.appendChild(renderSet("Set B (remaining teams)", setB));
+  elTeams.appendChild(renderSet("Set 1", result.set1));
+  elTeams.appendChild(renderSet("Set 2", result.set2));
 }
 
 elBtn.addEventListener("click", () => {
@@ -249,7 +281,7 @@ elBtn.addEventListener("click", () => {
     return;
   }
 
-  const result = buildTeams(input, CONFIG, elAllowSingles.checked);
+  const result = buildTeamsWithRules(input, CONFIG, elAllowSingles.checked);
   renderOutput(result);
 });
 
