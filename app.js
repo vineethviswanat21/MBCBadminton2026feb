@@ -54,7 +54,7 @@ function tryBuild(makeFn, attempts = 1200) {
   return {
     ok: false,
     reason:
-      "Could not generate valid teams with the given constraints (forbidden pairs). Try Randomizer again or adjust forbidden pairs."
+      "Error line 57."
   };
 }
 
@@ -197,13 +197,13 @@ let CONFIG = null;
 async function loadConfig() {
   try {
     const res = await fetch("./config.json", { cache: "no-store" });
-    if (!res.ok) throw new Error("config.json not found");
+    if (!res.ok) throw new Error("File not found");
     CONFIG = await res.json();
-    elStatus.textContent = "Config loaded. Paste names and click Randomizer.";
+    elStatus.textContent = "Paste names and click Randomizer.";
   } catch (e) {
     CONFIG = { groupA: [], groupB: [], groupC: [], forbiddenPairs: [] };
     elStatus.textContent =
-      "Config not loaded (missing config.json). Randomizer will use free random pairing.";
+      "Randomize Pairing";
   }
 }
 
@@ -262,10 +262,10 @@ function renderOutput(result) {
 
   if (result.mode === "CONFIG_MATCH") {
     elStatus.textContent =
-      "Rules applied: A-B teams (7) + C-C teams (3). Split: Set 1 = 3 AB + 2 C, Set 2 = 4 AB + 1 C.";
+      "Randomized Team.";
   } else {
     elStatus.textContent =
-      "Free random pairing (config not matched) + forbidden pairs. Split: first 5 teams in Set 1, rest in Set 2.";
+      "Randomized Team.";
   }
 
   elTeams.appendChild(renderSet("Set 1", result.set1));
