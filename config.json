@@ -3,8 +3,6 @@
   "groupB": ["Ajay", "Vivek", "Praveen", "Illango", "Guru", "Ram", "Martin"],
   "groupC": ["Vikas", "Chary", "Raviteja", "Vijay", "Siddharth", "Vineeth"],
   "forbiddenPairs": [
-    ["Vineeth", "Kurian"],
-    ["Chandu", "Praveen"],
-    ["Siddharth", "Guru"]
-  ]
+      ["Chandu", "Praveen"]
+    ]
 }
