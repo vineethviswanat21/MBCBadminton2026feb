@@ -3,10 +3,7 @@ function normalizeName(s) {
 }
 
 function linesToList(text) {
-  return text
-    .split(/\r?\n/)
-    .map(normalizeName)
-    .filter(Boolean);
+  return text.split(/\r?\n/).map(normalizeName).filter(Boolean);
 }
 
 function caseFold(s) {
@@ -48,60 +45,83 @@ function isForbiddenPair(a, b, forbiddenPairsSet) {
   return forbiddenPairsSet.has(normalizePairKey(a, b));
 }
 
-// Hard-coded: split into Set A (first 5 teams) and Set B (rest)
+// Split into Set A (first 5 teams) and Set B (rest)
 function splitTeams(teams) {
   const SET_A_COUNT = 5;
-  return {
-    setA: teams.slice(0, SET_A_COUNT),
-    setB: teams.slice(SET_A_COUNT)
-  };
+  return { setA: teams.slice(0, SET_A_COUNT), setB: teams.slice(SET_A_COUNT) };
 }
 
-// Retry generator until constraints satisfied (or fail)
-function tryBuildTeams(makeTeamsFn, attempts = 500) {
+// Retry until it satisfies constraints, else fail
+function tryBuildTeams(makeTeamsFn, attempts = 800) {
   for (let i = 0; i < attempts; i++) {
     const res = makeTeamsFn();
     if (res.ok) return res;
   }
-  return { ok: false, teams: [], reason: "Could not generate teams - Internal Error ." };
+  return { ok: false, teams: [], reason: "Error 01 60" };
 }
 
 function buildTeams(inputNames, config, allowSingles) {
   const groupA = (config?.groupA ?? []).map(normalizeName);
   const groupB = (config?.groupB ?? []).map(normalizeName);
-  const configAll = [...groupA, ...groupB].map(normalizeName);
+  const groupC = (config?.groupC ?? []).map(normalizeName);
 
+  const configAll = [...groupA, ...groupB, ...groupC].map(normalizeName);
   const forbiddenPairsSet = buildForbiddenPairSet(config);
 
   const isConfigMatch = setEqualsCaseInsensitive(inputNames, configAll);
 
-  // Canonicalize to config names when matched (handles case/spacing)
+  // Canonicalize to config names if matched (case/space friendly)
   const canonMap = new Map();
   for (const n of configAll) canonMap.set(caseFold(n), n);
   const inputCanon = inputNames.map(n => canonMap.get(caseFold(n)) ?? n);
 
   if (isConfigMatch) {
-    const inputA = inputCanon.filter(n => groupA.some(a => caseFold(a) === caseFold(n)));
-    const inputB = inputCanon.filter(n => groupB.some(b => caseFold(b) === caseFold(n)));
+    const inA = inputCanon.filter(n => groupA.some(a => caseFold(a) === caseFold(n)));
+    const inB = inputCanon.filter(n => groupB.some(b => caseFold(b) === caseFold(n)));
+    const inC = inputCanon.filter(n => groupC.some(c => caseFold(c) === caseFold(n)));
 
+    // Rules:
+    // - A pairs with B only
+    // - C pairs within C only
+    // - Forbidden pairs never happen
     const attempt = tryBuildTeams(() => {
-      const a = shuffle([...inputA]);
-      const b = shuffle([...inputB]);
+      const A = shuffle([...inA]);
+      const B = shuffle([...inB]);
+      const C = shuffle([...inC]);
 
       const teams = [];
-      const pairs = Math.min(a.length, b.length);
 
-      for (let i = 0; i < pairs; i++) {
-        const p1 = a[i];
-        const p2 = b[i];
-
+      // A-B pairing
+      if (A.length !== B.length) {
+        // With your lists A=7, B=7, so this should match.
+        // If not, we handle leftovers optionally.
+      }
+      const abPairs = Math.min(A.length, B.length);
+      for (let i = 0; i < abPairs; i++) {
+        const p1 = A[i];
+        const p2 = B[i];
         if (isForbiddenPair(p1, p2, forbiddenPairsSet)) return { ok: false };
         teams.push([p1, p2]);
       }
 
-      const leftovers = a.slice(pairs).concat(b.slice(pairs));
-      if (leftovers.length && allowSingles) {
-        for (const l of leftovers) teams.push([l]);
+      // leftovers from A/B (only as singles if allowed)
+      const leftoversAB = A.slice(abPairs).concat(B.slice(abPairs));
+      if (leftoversAB.length) {
+        if (!allowSingles) return { ok: false };
+        for (const l of leftoversAB) teams.push([l]);
+      }
+
+      // C-C pairing
+      const cPool = [...C];
+      while (cPool.length >= 2) {
+        const p1 = cPool.shift();
+        const p2 = cPool.shift();
+        if (isForbiddenPair(p1, p2, forbiddenPairsSet)) return { ok: false };
+        teams.push([p1, p2]);
+      }
+      if (cPool.length === 1) {
+        if (!allowSingles) return { ok: false };
+        teams.push([cPool.shift()]);
       }
 
       return { ok: true, teams };
@@ -113,7 +133,7 @@ function buildTeams(inputNames, config, allowSingles) {
     return { mode: "CONFIG_MATCH", teams: attempt.teams, split };
   }
 
-  // Free random pairing (still avoid forbidden pairs)
+  // If input doesn't match config set: free random pairing (still avoid forbidden pairs)
   const attempt = tryBuildTeams(() => {
     const pool = shuffle([...inputNames]);
     const teams = [];
@@ -121,12 +141,11 @@ function buildTeams(inputNames, config, allowSingles) {
     while (pool.length >= 2) {
       const p1 = pool.shift();
       const p2 = pool.shift();
-
       if (isForbiddenPair(p1, p2, forbiddenPairsSet)) return { ok: false };
       teams.push([p1, p2]);
     }
-
     if (pool.length === 1 && allowSingles) teams.push([pool.shift()]);
+
     return { ok: true, teams };
   });
 
@@ -149,13 +168,12 @@ let CONFIG = null;
 async function loadConfig() {
   try {
     const res = await fetch("./config.json", { cache: "no-store" });
-    if (!res.ok) throw new Error("Internal error ");
+    if (!res.ok) throw new Error("File 171 not found");
     CONFIG = await res.json();
-    elStatus.textContent = " Paste names and click Randomizer.";
+    elStatus.textContent = "Paste names and click Randomizer.";
   } catch (e) {
-    CONFIG = { groupA: [], groupB: [], forbiddenPairs: [] };
-    elStatus.textContent =
-      "Config not loaded (missing config.json). Randomizer will start random pairing.";
+    CONFIG = { groupA: [], groupB: [], groupC: [], forbiddenPairs: [] };
+    elStatus.textContent = "Randomize Teams.";
   }
 }
 
@@ -166,7 +184,6 @@ function renderSet(title, teams) {
   const h = document.createElement("h3");
   h.textContent = title;
   h.style.margin = "8px 0";
-
   wrap.appendChild(h);
 
   if (!teams.length) {
@@ -215,11 +232,10 @@ function renderOutput(result) {
 
   elStatus.textContent =
     result.mode === "CONFIG_MATCH"
-      ? "Completed "
-      : "Free random pairing applied";
+      ? "Rules applied: A-B only, C-C only + forbidden pairs"
+      : "Free random pairing (config not matched) + forbidden pairs";
 
   const { setA, setB } = result.split;
-
   elTeams.appendChild(renderSet("Set A (first 5 teams)", setA));
   elTeams.appendChild(renderSet("Set B (remaining teams)", setB));
 }
