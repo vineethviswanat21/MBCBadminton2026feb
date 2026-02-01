@@ -47,8 +47,15 @@ function isForbiddenPair(a, b, forbiddenSet) {
 
 // Old split behavior: first 5 teams in Set 1, remaining in Set 2
 function splitIntoSets(teams) {
-  return { set1: teams.slice(0, 5), set2: teams.slice(5) };
+  const total = teams.length;
+  const set1Count = Math.ceil(total / 2);
+
+  return {
+    set1: teams.slice(0, set1Count),
+    set2: teams.slice(set1Count)
+  };
 }
+
 
 // Retry generator until constraints satisfied (or fail)
 function tryBuild(makeFn, attempts = 1500) {
