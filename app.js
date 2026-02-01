@@ -47,15 +47,14 @@ function isForbiddenPair(a, b, forbiddenSet) {
 
 // Old split behavior: first 5 teams in Set 1, remaining in Set 2
 function splitIntoSets(teams) {
-  const total = teams.length;
+ const total = teams.length;
   const set1Count = Math.ceil(total / 2);
 
   return {
     set1: teams.slice(0, set1Count),
-    set2: teams.slice(set1Count)
-  };
+    set2: teams.slice(set1Count)  
+};
 }
-
 
 // Retry generator until constraints satisfied (or fail)
 function tryBuild(makeFn, attempts = 1500) {
@@ -66,7 +65,7 @@ function tryBuild(makeFn, attempts = 1500) {
   return {
     ok: false,
     reason:
-      "Error - 62"
+      "Could not generate teams without forbidden pairs. Try Randomizer again or adjust the forbidden pairs."
   };
 }
 
