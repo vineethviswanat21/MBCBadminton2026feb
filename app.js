@@ -10,6 +10,10 @@ function caseFold(s) {
   return s.toLocaleLowerCase();
 }
 
+function shuffleTeams(teams) {
+  return shuffle([...teams]);
+}
+
 function shuffle(arr) {
   for (let i = arr.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -47,7 +51,8 @@ function isForbiddenPair(a, b, forbiddenSet) {
 
 // Old split behavior: first 5 teams in Set 1, remaining in Set 2
 function splitIntoSets(teams) {
- const total = teams.length;
+ const mixed = shuffleTeams(teams); 
+  const total = teams.length;
   const set1Count = Math.ceil(total / 2);
 
   return {
