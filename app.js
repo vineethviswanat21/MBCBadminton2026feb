@@ -193,7 +193,9 @@ function renderSet(title, teams) {
     titleLine.innerHTML = `<span class="code">Team ${idx + 1}</span>`;
 
     const names = document.createElement("div");
-    names.textContent = t.join(" + ");
+    const shown = (t.length === 2) ? shuffle([...t]) : t;
+    names.textContent = shown.join(" + ");
+
 
     const tag = document.createElement("div");
     tag.className = "tag";
