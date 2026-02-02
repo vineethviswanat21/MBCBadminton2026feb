@@ -1,0 +1,568 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Points Table</title>
+
+  <style>
+    :root{
+      --bg:#0b0f14;
+      --card:#111827;
+      --text:#e5e7eb;
+      --muted:#9ca3af;
+      --border:rgba(255,255,255,.10);
+      --blue:#2563eb;
+      --green:#10b981;
+      --orange:#f59e0b;
+      --red:#ef4444;
+    }
+
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      background:
+        radial-gradient(900px 450px at 20% 0%, rgba(37,99,235,.25), transparent),
+        radial-gradient(900px 450px at 80% 0%, rgba(16,185,129,.18), transparent),
+        var(--bg);
+      color:var(--text);
+    }
+    .container{
+      max-width:1100px;
+      margin:28px auto;
+      padding:0 16px;
+    }
+    .header{
+      display:flex; align-items:flex-end; justify-content:space-between; gap:12px; flex-wrap:wrap;
+      margin-bottom:14px;
+    }
+    h1{margin:0; font-size:26px}
+    .sub{margin:6px 0 0; color:var(--muted)}
+    .row{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
+    a.btn, button.btn{
+      border:0; cursor:pointer; text-decoration:none;
+      background:var(--blue); color:#fff;
+      padding:10px 14px; border-radius:12px; font-weight:700;
+      display:inline-flex; align-items:center; gap:8px;
+    }
+    .btn.secondary{
+      background:rgba(255,255,255,.08);
+      border:1px solid var(--border);
+      color:var(--text);
+      font-weight:650;
+    }
+    .btn.danger{
+      background:rgba(239,68,68,.15);
+      border:1px solid rgba(239,68,68,.35);
+      color:#fecaca;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap:14px;
+    }
+    @media (max-width: 960px){
+      .grid{grid-template-columns:1fr}
+    }
+
+    .card{
+      background: rgba(17,24,39,.88);
+      border:1px solid var(--border);
+      border-radius:16px;
+      padding:14px;
+      box-shadow:0 12px 28px rgba(0,0,0,.25);
+    }
+    .card h2{margin:0 0 10px; font-size:18px}
+    .pill{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:6px 10px; border-radius:999px;
+      border:1px solid var(--border);
+      background:rgba(0,0,0,.18);
+      color:var(--muted);
+      font-size:12px;
+    }
+    .pill .dot{width:8px; height:8px; border-radius:50%;}
+    .dot.a{background:var(--blue)}
+    .dot.b{background:var(--green)}
+
+    .tablewrap{overflow:auto; border-radius:14px; border:1px solid var(--border)}
+    table{width:100%; border-collapse:collapse; background:rgba(0,0,0,.18)}
+    th, td{padding:10px 10px; border-bottom:1px solid rgba(255,255,255,.08); text-align:left; font-size:14px}
+    th{color:var(--muted); font-weight:700; background:rgba(255,255,255,.06); position:sticky; top:0}
+    tr:hover td{background:rgba(255,255,255,.03)}
+    .num{font-variant-numeric: tabular-nums}
+    .rank{
+      font-weight:800;
+      color:#93c5fd;
+      width:54px;
+    }
+    .tag{
+      font-size:12px; color:var(--muted);
+    }
+
+    .adminBox{
+      display:grid; gap:10px;
+      padding:12px; border-radius:14px;
+      border:1px dashed rgba(255,255,255,.18);
+      background:rgba(0,0,0,.18);
+    }
+    label{font-size:12px; color:var(--muted)}
+    input, select{
+      width:100%;
+      padding:10px 10px;
+      border-radius:12px;
+      border:1px solid var(--border);
+      background:rgba(0,0,0,.22);
+      color:var(--text);
+      outline:none;
+    }
+    input:focus, select:focus{border-color:rgba(37,99,235,.55)}
+    .status{color:var(--muted); font-size:13px; margin-top:8px}
+    .ok{color:#bbf7d0}
+    .err{color:#fecaca}
+
+    .split{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:12px;
+    }
+    @media (max-width: 700px){
+      .split{grid-template-columns:1fr}
+    }
+
+    .sectionTitle{
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      margin-bottom:10px;
+    }
+
+    .smallNote{font-size:12px; color:var(--muted); margin:8px 0 0}
+    code{background:rgba(0,0,0,.25); padding:2px 6px; border-radius:8px; border:1px solid var(--border)}
+  </style>
+</head>
+
+<body>
+  <main class="container">
+    <header class="header">
+      <div>
+        <h1>Points Table</h1>
+        <p class="sub">Round-robin within each group • Auto standings • Admin-only score entry</p>
+      </div>
+      <div class="row">
+        <a class="btn secondary" href="tournament.html">← Tournament Details</a>
+        <a class="btn secondary" href="index.html">Randomizer</a>
+      </div>
+    </header>
+
+    <div class="grid">
+      <!-- LEFT: Standings -->
+      <section class="card">
+        <div class="sectionTitle">
+          <h2>Standings</h2>
+          <div class="row">
+            <span id="authPill" class="pill"><span class="dot b"></span><b>Viewer</b></span>
+            <button id="logoutBtn" class="btn secondary" type="button" style="display:none;">Logout</button>
+          </div>
+        </div>
+
+        <div class="split">
+          <div>
+            <div class="row" style="justify-content:space-between; margin-bottom:8px;">
+              <span class="pill"><span class="dot a"></span><b>Group A</b></span>
+              <span class="tag">Top 4 qualify</span>
+            </div>
+            <div class="tablewrap">
+              <table id="tableA">
+                <thead>
+                  <tr>
+                    <th class="rank">#</th>
+                    <th>Team</th>
+                    <th class="num">MP</th>
+                    <th class="num">W</th>
+                    <th class="num">L</th>
+                    <th class="num">PF</th>
+                    <th class="num">PA</th>
+                    <th class="num">PD</th>
+                    <th class="num">Pts</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+            <p class="smallNote">Points: Win = 2, Loss = 0. Tie-breakers: Pts → PD → PF</p>
+          </div>
+
+          <div>
+            <div class="row" style="justify-content:space-between; margin-bottom:8px;">
+              <span class="pill"><span class="dot b"></span><b>Group B</b></span>
+              <span class="tag">Top 4 qualify</span>
+            </div>
+            <div class="tablewrap">
+              <table id="tableB">
+                <thead>
+                  <tr>
+                    <th class="rank">#</th>
+                    <th>Team</th>
+                    <th class="num">MP</th>
+                    <th class="num">W</th>
+                    <th class="num">L</th>
+                    <th class="num">PF</th>
+                    <th class="num">PA</th>
+                    <th class="num">PD</th>
+                    <th class="num">Pts</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+            <p class="smallNote">PF/PA are total points for/against (use game score like 21–15).</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- RIGHT: Admin -->
+      <section class="card">
+        <h2>Admin</h2>
+
+        <!-- Login -->
+        <div id="loginBox" class="adminBox">
+          <div>
+            <label>Username</label>
+            <input id="user" autocomplete="username" placeholder="Enter username" />
+          </div>
+          <div>
+            <label>Password</label>
+            <input id="pass" type="password" autocomplete="current-password" placeholder="Enter password" />
+          </div>
+          <button id="loginBtn" class="btn" type="button">Login</button>
+          <div id="loginStatus" class="status"></div>
+        </div>
+
+        <!-- Score entry -->
+        <div id="adminPanel" class="adminBox" style="display:none;">
+          <div class="row" style="justify-content:space-between;">
+            <span class="pill"><span class="dot a"></span><b>Score Entry</b></span>
+            <button id="resetBtn" class="btn danger" type="button">Reset All Scores</button>
+          </div>
+
+          <div>
+            <label>Group</label>
+            <select id="groupSel">
+              <option value="A">Group A</option>
+              <option value="B">Group B</option>
+            </select>
+          </div>
+
+          <div>
+            <label>Match</label>
+            <select id="matchSel"></select>
+          </div>
+
+          <div class="split">
+            <div>
+              <label>Team 1 score</label>
+              <input id="s1" type="number" min="0" inputmode="numeric" placeholder="e.g. 21" />
+            </div>
+            <div>
+              <label>Team 2 score</label>
+              <input id="s2" type="number" min="0" inputmode="numeric" placeholder="e.g. 15" />
+            </div>
+          </div>
+
+          <button id="saveScoreBtn" class="btn" type="button">Save Score</button>
+          <div id="adminStatus" class="status"></div>
+
+          <div class="smallNote">
+            Tip: Select a match, enter scores, and save. Standings update instantly.
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+<script>
+(() => {
+  // ======== “Admin” (client-side) ========
+  const ADMIN_USER = "vineeth";
+  const ADMIN_PASS = "martin";
+
+  // ======== Teams (from your message) ========
+  const GROUPS = {
+    A: [
+      { id: "A1", name: "A1 - Ram / Chary" },
+      { id: "A2", name: "A2 - Siddharth / Vivek" },
+      { id: "A3", name: "A3 - Ajay / Raviteja" },
+      { id: "A4", name: "A4 - Vikas / Karthik" },
+      { id: "A5", name: "A5 - Sanath / Guru" }
+    ],
+    B: [
+      { id: "B1", name: "B1 - Illango / Shibin" },
+      { id: "B2", name: "B2 - Vineeth / Praveen" },
+      { id: "B3", name: "B3 - Vijay / Sasi" },
+      { id: "B4", name: "B4 - Kurian / Siva" },
+      { id: "B5", name: "B5 - Chandu / Martin" }
+    ]
+  };
+
+  // Generate round-robin matches for 5 teams => 10 matches
+  function roundRobin(teamIds) {
+    const matches = [];
+    for (let i = 0; i < teamIds.length; i++) {
+      for (let j = i + 1; j < teamIds.length; j++) {
+        matches.push([teamIds[i], teamIds[j]]);
+      }
+    }
+    return matches;
+  }
+
+  const MATCHES = {
+    A: roundRobin(GROUPS.A.map(t => t.id)),
+    B: roundRobin(GROUPS.B.map(t => t.id))
+  };
+
+  // ======== Storage ========
+  const KEY_SCORES = "tournament_scores_v1";
+  const KEY_AUTH = "tournament_admin_logged_in";
+
+  function loadScores() {
+    try {
+      const raw = localStorage.getItem(KEY_SCORES);
+      if (!raw) return {};
+      const obj = JSON.parse(raw);
+      return obj && typeof obj === "object" ? obj : {};
+    } catch {
+      return {};
+    }
+  }
+
+  function saveScores(scores) {
+    localStorage.setItem(KEY_SCORES, JSON.stringify(scores));
+  }
+
+  // scoreKey: "A|A1|A2" (order normalized)
+  function scoreKey(group, t1, t2) {
+    const a = String(t1), b = String(t2);
+    const pair = a < b ? `${a}|${b}` : `${b}|${a}`;
+    return `${group}|${pair}`;
+  }
+
+  // ======== Standings calc ========
+  function calcStandings(group) {
+    const scores = loadScores();
+    const teams = GROUPS[group];
+
+    const stat = {};
+    for (const t of teams) {
+      stat[t.id] = {
+        id: t.id,
+        name: t.name,
+        mp: 0, w: 0, l: 0, pf: 0, pa: 0, pd: 0, pts: 0
+      };
+    }
+
+    for (const [t1, t2] of MATCHES[group]) {
+      const key = scoreKey(group, t1, t2);
+      const rec = scores[key];
+      if (!rec) continue;
+
+      const s1 = Number(rec.s1);
+      const s2 = Number(rec.s2);
+      if (!Number.isFinite(s1) || !Number.isFinite(s2)) continue;
+      if (s1 === s2) continue; // no draws (badminton)
+
+      const A = stat[t1];
+      const B = stat[t2];
+
+      A.mp++; B.mp++;
+      A.pf += s1; A.pa += s2;
+      B.pf += s2; B.pa += s1;
+
+      if (s1 > s2) { A.w++; B.l++; A.pts += 2; }
+      else { B.w++; A.l++; B.pts += 2; }
+    }
+
+    for (const t of teams) {
+      stat[t.id].pd = stat[t.id].pf - stat[t.id].pa;
+    }
+
+    const arr = Object.values(stat);
+    arr.sort((x, y) => {
+      // tie-break: Pts desc, PD desc, PF desc, name asc
+      if (y.pts !== x.pts) return y.pts - x.pts;
+      if (y.pd !== x.pd) return y.pd - x.pd;
+      if (y.pf !== x.pf) return y.pf - x.pf;
+      return x.name.localeCompare(y.name);
+    });
+
+    return arr;
+  }
+
+  function renderTable(group, tableId) {
+    const tbody = document.querySelector(`#${tableId} tbody`);
+    const rows = calcStandings(group);
+
+    tbody.innerHTML = rows.map((r, idx) => `
+      <tr>
+        <td class="rank">${idx + 1}</td>
+        <td>${escapeHtml(r.name)}</td>
+        <td class="num">${r.mp}</td>
+        <td class="num">${r.w}</td>
+        <td class="num">${r.l}</td>
+        <td class="num">${r.pf}</td>
+        <td class="num">${r.pa}</td>
+        <td class="num">${r.pd}</td>
+        <td class="num"><b>${r.pts}</b></td>
+      </tr>
+    `).join("");
+  }
+
+  function escapeHtml(s) {
+    return String(s)
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+  }
+
+  // ======== Admin UI ========
+  const loginBox = document.getElementById("loginBox");
+  const adminPanel = document.getElementById("adminPanel");
+  const authPill = document.getElementById("authPill");
+  const logoutBtn = document.getElementById("logoutBtn");
+
+  const userEl = document.getElementById("user");
+  const passEl = document.getElementById("pass");
+  const loginBtn = document.getElementById("loginBtn");
+  const loginStatus = document.getElementById("loginStatus");
+
+  const groupSel = document.getElementById("groupSel");
+  const matchSel = document.getElementById("matchSel");
+  const s1El = document.getElementById("s1");
+  const s2El = document.getElementById("s2");
+  const saveScoreBtn = document.getElementById("saveScoreBtn");
+  const adminStatus = document.getElementById("adminStatus");
+  const resetBtn = document.getElementById("resetBtn");
+
+  function setAuth(isAdmin) {
+    localStorage.setItem(KEY_AUTH, isAdmin ? "1" : "0");
+    if (isAdmin) {
+      loginBox.style.display = "none";
+      adminPanel.style.display = "grid";
+      authPill.innerHTML = '<span class="dot a"></span><b>Admin</b>';
+      logoutBtn.style.display = "inline-flex";
+    } else {
+      loginBox.style.display = "grid";
+      adminPanel.style.display = "none";
+      authPill.innerHTML = '<span class="dot b"></span><b>Viewer</b>';
+      logoutBtn.style.display = "none";
+    }
+  }
+
+  function isAdmin() {
+    return localStorage.getItem(KEY_AUTH) === "1";
+  }
+
+  function fillMatchDropdown(group) {
+    matchSel.innerHTML = "";
+    const scores = loadScores();
+
+    MATCHES[group].forEach(([t1, t2], idx) => {
+      const key = scoreKey(group, t1, t2);
+      const rec = scores[key];
+      const label = `${idx + 1}. ${t1} vs ${t2}` + (rec ? `  (Saved: ${rec.s1}-${rec.s2})` : "");
+      const opt = document.createElement("option");
+      opt.value = `${t1}|${t2}`;
+      opt.textContent = label;
+      matchSel.appendChild(opt);
+    });
+
+    // pre-fill input based on selected match
+    prefillScoreInputs();
+  }
+
+  function prefillScoreInputs() {
+    const group = groupSel.value;
+    const [t1, t2] = matchSel.value.split("|");
+    const scores = loadScores();
+    const key = scoreKey(group, t1, t2);
+    const rec = scores[key];
+
+    s1El.value = rec ? rec.s1 : "";
+    s2El.value = rec ? rec.s2 : "";
+  }
+
+  // Save score
+  function saveScore() {
+    const group = groupSel.value;
+    const [t1, t2] = matchSel.value.split("|");
+    const s1 = Number(s1El.value);
+    const s2 = Number(s2El.value);
+
+    if (!Number.isFinite(s1) || !Number.isFinite(s2) || s1 < 0 || s2 < 0) {
+      adminStatus.innerHTML = '<span class="err">Enter valid non-negative scores.</span>';
+      return;
+    }
+    if (s1 === s2) {
+      adminStatus.innerHTML = '<span class="err">No ties allowed. Enter a winner.</span>';
+      return;
+    }
+
+    const scores = loadScores();
+    scores[scoreKey(group, t1, t2)] = { s1, s2, updatedAt: new Date().toISOString() };
+    saveScores(scores);
+
+    adminStatus.innerHTML = '<span class="ok">Score saved. Standings updated.</span>';
+    fillMatchDropdown(group);
+    renderAll();
+  }
+
+  function resetAll() {
+    if (!confirm("Reset ALL saved scores?")) return;
+    localStorage.removeItem(KEY_SCORES);
+    adminStatus.innerHTML = '<span class="ok">All scores cleared.</span>';
+    fillMatchDropdown(groupSel.value);
+    renderAll();
+  }
+
+  // ======== Events ========
+  loginBtn.addEventListener("click", () => {
+    const u = (userEl.value || "").trim().toLowerCase();
+    const p = (passEl.value || "").trim().toLowerCase();
+
+    if (u === ADMIN_USER && p === ADMIN_PASS) {
+      loginStatus.innerHTML = '<span class="ok">Login successful.</span>';
+      setAuth(true);
+      fillMatchDropdown(groupSel.value);
+    } else {
+      loginStatus.innerHTML = '<span class="err">Invalid username/password.</span>';
+    }
+  });
+
+  logoutBtn.addEventListener("click", () => {
+    setAuth(false);
+    loginStatus.textContent = "";
+    adminStatus.textContent = "";
+  });
+
+  groupSel.addEventListener("change", () => fillMatchDropdown(groupSel.value));
+  matchSel.addEventListener("change", prefillScoreInputs);
+  saveScoreBtn.addEventListener("click", saveScore);
+  resetBtn.addEventListener("click", resetAll);
+
+  // ======== Render ========
+  function renderAll() {
+    renderTable("A", "tableA");
+    renderTable("B", "tableB");
+  }
+
+  // ======== Init ========
+  setAuth(isAdmin());
+  fillMatchDropdown(groupSel.value);
+  renderAll();
+})();
+</script>
+
+</body>
+</html>
