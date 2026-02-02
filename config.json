@@ -1,6 +1,6 @@
 {
-  "top10": ["Chandu", "Sasi", "Shibin", "Karthik", "Kurian", "Sanath", "Siddharth", "Chary", "Raviteja", "Vineeth"],
-  "bottom10": ["Ajay", "Vivek", "Praveen", "Illango", "Guru", "Ram", "Martin", "Vikas", "Siva", "Vijay"],
+  "top10": ["A", "B", "C", "1", "2", "3", "4", "A", "B", "C"],
+  "bottom10": ["q", "w", "e", "r", "t", "y", "6", "7", "8", "9"],
   "forbiddenPairs": [
     ["Chandu", "Praveen"],
     ["Siddharth", "Guru"],
