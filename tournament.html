@@ -4,8 +4,165 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>MBC 2026 Feb - Tournament Details</title>
-  <link rel="stylesheet" href="styles.css" />
+
+  <style>
+    :root{
+      --bg: #0b1220;
+      --card: rgba(255,255,255,0.04);
+      --text: #e8eefc;
+      --muted:#b9c4e2;
+      --border: rgba(255,255,255,0.12);
+      --accent:#7c3aed;
+      --shadow: 0 10px 30px rgba(0,0,0,0.35);
+    }
+
+    *{ box-sizing: border-box; }
+
+    body{
+      margin:0;
+      background: radial-gradient(1200px 600px at 10% 10%, rgba(124,58,237,0.35), transparent 55%),
+                  radial-gradient(900px 500px at 90% 20%, rgba(34,197,94,0.18), transparent 60%),
+                  var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    }
+
+    .container{
+      width: min(1050px, calc(100% - 28px));
+      margin: 0 auto;
+      padding: 18px 0 40px;
+    }
+
+    .header{
+      padding: 18px 0 6px;
+      text-align: center;
+    }
+    .header h1{ margin: 0 0 6px; font-size: 34px; letter-spacing: .2px; }
+    .sub{ margin:0; color: var(--muted); }
+
+    a.btn{
+      display:inline-block;
+      margin: 16px 0 0 16px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      text-decoration:none;
+      border: 1px solid rgba(255,255,255,0.18);
+      background: rgba(255,255,255,0.06);
+      color: var(--text);
+      box-shadow: 0 8px 18px rgba(0,0,0,0.25);
+      transition: transform .15s ease, background .15s ease;
+    }
+    a.btn:hover{ transform: translateY(-1px); background: rgba(255,255,255,0.10); }
+
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03));
+      border: 1px solid var(--border);
+      padding: 22px;
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      margin: 18px 0;
+      backdrop-filter: blur(6px);
+    }
+
+    .h2{
+      margin: 0 0 10px;
+      color: var(--text);
+      letter-spacing: 0.2px;
+      font-size: 20px;
+    }
+
+    .card p, .card li{ color: var(--muted); line-height: 1.55; }
+    .card b{ color: var(--text); }
+
+    ul{ margin: 10px 0 0 18px; }
+    li{ margin: 6px 0; }
+
+    .status{
+      margin-top: 16px;
+      padding: 14px 14px;
+      background: rgba(124,58,237,0.12);
+      border: 1px solid rgba(124,58,237,0.35);
+      border-left: 5px solid var(--accent);
+      border-radius: 12px;
+      color: var(--text);
+    }
+
+    .table-container{
+      overflow-x:auto;
+      margin-top: 14px;
+      border-radius: 14px;
+    }
+
+    table{
+      width:100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      overflow:hidden;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.03);
+    }
+
+    th{
+      text-align: left;
+      padding: 12px 12px;
+      font-size: 13px;
+      color: var(--text);
+      background: linear-gradient(180deg, rgba(124,58,237,0.35), rgba(124,58,237,0.18));
+      border-bottom: 1px solid rgba(255,255,255,0.12);
+      white-space: nowrap;
+    }
+
+    td{
+      padding: 11px 12px;
+      color: var(--muted);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+
+    tbody tr:nth-child(even) td{
+      background: rgba(255,255,255,0.03);
+    }
+
+    tbody tr:hover td{
+      background: rgba(124,58,237,0.10);
+      color: var(--text);
+    }
+
+    .group-title{
+      margin: 18px 0 10px;
+      font-size: 16px;
+      letter-spacing: 0.3px;
+    }
+    .group-title.group-a{ color: #93c5fd; }
+    .group-title.group-b{ color: #fcd34d; }
+
+    /* schedule group markers */
+    .schedule-table .group-a td{ box-shadow: inset 4px 0 0 rgba(147,197,253,0.9); }
+    .schedule-table .group-b td{ box-shadow: inset 4px 0 0 rgba(252,211,77,0.9); }
+
+    img{
+      max-width: 90%;
+      height: auto;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+      border: 1px solid rgba(255,255,255,0.10);
+    }
+
+    .img-wrap{ text-align:center; margin: 22px 0; }
+
+    .footer{ text-align:center; margin-top: 10px; }
+    marquee{ color: var(--muted); padding: 10px 0; }
+
+    /* nice small divider */
+    .divider{
+      height: 1px;
+      background: rgba(255,255,255,0.10);
+      margin: 16px 0;
+      border-radius: 999px;
+    }
+  </style>
 </head>
+
 <body>
   <a class="btn btn-secondary" href="https://docs.google.com/spreadsheets/d/1S9UPZeaZbQFq9S3-hagT5YMFEtNMzCmyQWq-G0MtJEY/edit?usp=sharing">Points Table</a>
 
@@ -13,8 +170,7 @@
     <header class="header">
       <h1>Tournament Details</h1>
       <p class="sub">Format, schedule, rules, and payment information</p>
-
-        </header>
+    </header>
 
     <section class="card">
       <h2 class="h2">Tournament Format</h2>
@@ -26,11 +182,10 @@
         <li>Each group will follow a <b>round-robin</b> format (teams play others within the same group).</li>
         <li>Based on group standings, the <b>top 4 teams</b> from each group will qualify for the <b>quarterfinals</b>.</li>
       </ul>
-      <div style="text-align:center; margin: 30px 0;">
-  <img src="GameFormat.jpeg"
-       alt="MBC"
-       style="max-width: 90%; height: auto; border-radius: 12px;" />
-</div>
+
+      <div class="img-wrap">
+        <img src="GameFormat.jpeg" alt="MBC Game Format" />
+      </div>
     </section>
 
     <section class="card">
@@ -61,198 +216,103 @@
       </div>
     </section>
 
-
-
-    
     <section class="card">
       <h2 class="h2">Team Formation</h2>
-      <p>
-   <div class="teams-table-wrapper">
 
-  <!-- GROUP A -->
-  <h3 class="group-title group-a">Group A</h3>
-  <table class="teams-table">
-    <thead>
-      <tr>
-        <th>Team #</th>
-        <th>Player 1</th>
-        <th>Player 2</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td>1</td><td>Ram</td><td>Chary</td>
-      </tr>
-      <tr>
-        <td>2</td><td>Siddharth</td><td>Vivek</td>
-      </tr>
-      <tr>
-        <td>3</td><td>Ajay</td><td>Raviteja</td>
-      </tr>
-      <tr>
-        <td>4</td><td>Vikas</td><td>Karthik</td>
-      </tr>
-      <tr>
-        <td>5</td><td>Sanath</td><td>Guru</td>
-      </tr>
-    </tbody>
-  </table>
+      <h3 class="group-title group-a">Group A</h3>
+      <div class="table-container">
+        <table class="teams-table">
+          <thead>
+            <tr>
+              <th>Team #</th>
+              <th>Player 1</th>
+              <th>Player 2</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>1</td><td>Ram</td><td>Chary</td></tr>
+            <tr><td>2</td><td>Siddharth</td><td>Vivek</td></tr>
+            <tr><td>3</td><td>Ajay</td><td>Raviteja</td></tr>
+            <tr><td>4</td><td>Vikas</td><td>Karthik</td></tr>
+            <tr><td>5</td><td>Sanath</td><td>Guru</td></tr>
+          </tbody>
+        </table>
+      </div>
 
-  <!-- GROUP B -->
-  <h3 class="group-title group-b">Group B</h3>
-  <table class="teams-table">
-    <thead>
-      <tr>
-        <th>Team #</th>
-        <th>Player 1</th>
-        <th>Player 2</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td>1</td><td>Illango</td><td>Shibin</td>
-      </tr>
-      <tr>
-        <td>2</td><td>Vineeth</td><td>Praveen</td>
-      </tr>
-      <tr>
-        <td>3</td><td>Vijay</td><td>Sasi</td>
-      </tr>
-      <tr>
-        <td>4</td><td>Kurian</td><td>Siva</td>
-      </tr>
-      <tr>
-        <td>5</td><td>Chandu</td><td>Martin</td>
-      </tr>
-    </tbody>
-  </table>
+      <div class="divider"></div>
 
-</div>
-
-      </p>
+      <h3 class="group-title group-b">Group B</h3>
+      <div class="table-container">
+        <table class="teams-table">
+          <thead>
+            <tr>
+              <th>Team #</th>
+              <th>Player 1</th>
+              <th>Player 2</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>1</td><td>Illango</td><td>Shibin</td></tr>
+            <tr><td>2</td><td>Vineeth</td><td>Praveen</td></tr>
+            <tr><td>3</td><td>Vijay</td><td>Sasi</td></tr>
+            <tr><td>4</td><td>Kurian</td><td>Siva</td></tr>
+            <tr><td>5</td><td>Chandu</td><td>Martin</td></tr>
+          </tbody>
+        </table>
+      </div>
     </section>
 
-<section class="card">
-  <h2 class="h2">Group Stage Match Schedule</h2>
-  <p>
-    Below is the official <b>Group A</b> and <b>Group B</b> match schedule. 
-    Each team plays against every other team once in their respective groups.
-  </p>
+    <section class="card">
+      <h2 class="h2">Group Stage Match Schedule</h2>
+      <p>
+        Below is the official <b>Group A</b> and <b>Group B</b> match schedule.
+        Each team plays against every other team once in their respective groups.
+      </p>
 
-  <div class="table-container">
-    <table class="schedule-table">
-      <thead>
-        <tr>
-          <th>Match #</th>
-          <th>Group</th>
-          <th>Team 1</th>
-          <th>Team 2</th>
-        </tr>
-      </thead>
-      <tbody>
+      <div class="table-container">
+        <table class="schedule-table">
+          <thead>
+            <tr>
+              <th>Match #</th>
+              <th>Group</th>
+              <th>Team 1</th>
+              <th>Team 2</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Group A -->
+            <tr class="group-a"><td>1</td><td>A</td><td>Ram-Chary</td><td>Sid-Vivek</td></tr>
+            <tr class="group-a"><td>2</td><td>A</td><td>Ajay-Ravi</td><td>Vikas-Karthik</td></tr>
+            <tr class="group-a"><td>3</td><td>A</td><td>Ram-Chary</td><td>Ajay-Ravi</td></tr>
+            <tr class="group-a"><td>4</td><td>A</td><td>Sanath-Guru</td><td>Vikas-Karthik</td></tr>
+            <tr class="group-a"><td>5</td><td>A</td><td>Ajay-Ravi</td><td>Sid-Vivek</td></tr>
+            <tr class="group-a"><td>6</td><td>A</td><td>Ram-Chary</td><td>Sanath-Guru</td></tr>
+            <tr class="group-a"><td>7</td><td>A</td><td>Vikas-Karthik</td><td>Sid-Vivek</td></tr>
+            <tr class="group-a"><td>8</td><td>A</td><td>Ajay-Ravi</td><td>Sanath-Guru</td></tr>
+            <tr class="group-a"><td>9</td><td>A</td><td>Ram-Chary</td><td>Vikas-Karthik</td></tr>
+            <tr class="group-a"><td>10</td><td>A</td><td>Sanath-Guru</td><td>Sid-Vivek</td></tr>
 
-        <!-- Group A -->
-        <tr class="group-a"><td>1</td><td>A</td><td>Ram-Chary</td><td>Sid-Vivek</td></tr>
-        <tr class="group-a"><td>2</td><td>A</td><td>Ajay-Ravi</td><td>Vikas-Karthik</td></tr>
-        <tr class="group-a"><td>3</td><td>A</td><td>Ram-Chary</td><td>Ajay-Ravi</td></tr>
-        <tr class="group-a"><td>4</td><td>A</td><td>Sanath-Guru</td><td>Vikas-Karthik</td></tr>
-        <tr class="group-a"><td>5</td><td>A</td><td>Ajay-Ravi</td><td>Sid-Vivek</td></tr>
-        <tr class="group-a"><td>6</td><td>A</td><td>Ram-Chary</td><td>Sanath-Guru</td></tr>
-        <tr class="group-a"><td>7</td><td>A</td><td>Vikas-Karthik</td><td>Sid-Vivek</td></tr>
-        <tr class="group-a"><td>8</td><td>A</td><td>Ajay-Ravi</td><td>Sanath-Guru</td></tr>
-        <tr class="group-a"><td>9</td><td>A</td><td>Ram-Chary</td><td>Vikas-Karthik</td></tr>
-        <tr class="group-a"><td>10</td><td>A</td><td>Sanath-Guru</td><td>Sid-Vivek</td></tr>
+            <!-- Group B -->
+            <tr class="group-b"><td>11</td><td>B</td><td>Illango-Shibin</td><td>Vineeth-Praveen</td></tr>
+            <tr class="group-b"><td>12</td><td>B</td><td>Vijay-Sasi</td><td>Kurian-Siva</td></tr>
+            <tr class="group-b"><td>13</td><td>B</td><td>Illango-Shibin</td><td>Vijay-Sasi</td></tr>
+            <tr class="group-b"><td>14</td><td>B</td><td>Chandu-Martin</td><td>Kurian-Siva</td></tr>
+            <tr class="group-b"><td>15</td><td>B</td><td>Vijay-Sasi</td><td>Vineeth-Praveen</td></tr>
+            <tr class="group-b"><td>16</td><td>B</td><td>Chandu-Martin</td><td>Illango-Shibin</td></tr>
+            <tr class="group-b"><td>17</td><td>B</td><td>Kurian-Siva</td><td>Vineeth-Praveen</td></tr>
+            <tr class="group-b"><td>18</td><td>B</td><td>Chandu-Martin</td><td>Vijay-Sasi</td></tr>
+            <tr class="group-b"><td>19</td><td>B</td><td>Illango-Shibin</td><td>Kurian-Siva</td></tr>
+            <tr class="group-b"><td>20</td><td>B</td><td>Chandu-Martin</td><td>Vineeth-Praveen</td></tr>
+          </tbody>
+        </table>
+      </div>
 
-        <!-- Group B -->
-        <tr class="group-b"><td>11</td><td>B</td><td>Illango-Shibin</td><td>Vineeth-Praveen</td></tr>
-        <tr class="group-b"><td>12</td><td>B</td><td>Vijay-Sasi</td><td>Kurian-Siva</td></tr>
-        <tr class="group-b"><td>13</td><td>B</td><td>Illango-Shibin</td><td>Vijay-Sasi</td></tr>
-        <tr class="group-b"><td>14</td><td>B</td><td>Chandu-Martin</td><td>Kurian-Siva</td></tr>
-        <tr class="group-b"><td>15</td><td>B</td><td>Vijay-Sasi</td><td>Vineeth-Praveen</td></tr>
-        <tr class="group-b"><td>16</td><td>B</td><td>Chandu-Martin</td><td>Illango-Shibin</td></tr>
-        <tr class="group-b"><td>17</td><td>B</td><td>Kurian-Siva</td><td>Vineeth-Praveen</td></tr>
-        <tr class="group-b"><td>18</td><td>B</td><td>Chandu-Martin</td><td>Vijay-Sasi</td></tr>
-        <tr class="group-b"><td>19</td><td>B</td><td>Illango-Shibin</td><td>Kurian-Siva</td></tr>
-        <tr class="group-b"><td>20</td><td>B</td><td>Chandu-Martin</td><td>Vineeth-Praveen</td></tr>
+      <div class="status">
+        Top teams from each group will advance to the knockout stage including
+        <b>Quarterfinals → Semifinals → Finals</b>.
+      </div>
+    </section>
 
-      </tbody>
-    </table>
-  </div>
-
-  <div class="status">
-    Top teams from each group will advance to the knockout stage including 
-    <b>Quarterfinals → Semifinals → Finals</b>.
-  </div>
-</section>
-
-<!-- Styles -->
-<style>
-  .card {
-   
-    padding: 24px;
-    border-radius: 16px;
-    box-shadow: 0 4px 18px rgba(0,0,0,0.08);
-    margin: 20px 0;
-    font-family: Arial, sans-serif;
-  }
-
-  .h2 {
-    margin-bottom: 10px;
-    color: #1a1a1a;
-  }
-
-  .table-container {
-    overflow-x: auto;
-    margin-top: 15px;
-  }
-
-  .schedule-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 14px;
-  }
-
-  .schedule-table th {
-  
-    color: black;
-    padding: 12px;
-    text-align: center;
-    border: 2px solid #000;
-  }
-
-  .schedule-table td {
-    padding: 10px;
-    text-align: center;
-    border: 1.5px solid #444;
-    font-weight: 500;
-  }
-
-  /* Zebra rows */
-  .schedule-table tbody tr:nth-child(even) {
-    background: #7c4ed9;
-  }
-
-  /* Group highlighting */
-  .group-a td {
-    background: ##f0f1f2;
-  }
-
-  .group-b td {
-    background: ##f0f1f2;
-  }
-
-  .status {
-    margin-top: 18px;
-    padding: 12px;
-    background: #f1f5f9;
-    border-left: 5px solid #2563eb;
-    border-radius: 8px;
-    font-size: 14px;
-  }
-</style>
-
-
-    
     <section class="card">
       <h2 class="h2">Entry Fee</h2>
       <p><b>$25 per player</b>, which includes:</p>
@@ -266,24 +326,20 @@
 
     <section class="card">
       <h2 class="h2">Payment Method</h2>
-      <p>
-        You may <b>Zelle</b> the entry fee to:
-      </p>
-      <div class="team" style="justify-content:flex-start; gap:14px;">
-        <div class="left">
-          <div class="code"><b>571-342-2922</b></div>
-          <div class="tag">Once payment is completed and confirmed, court reservation will be done for the specified time slot.</div>
+      <p>You may <b>Zelle</b> the entry fee to:</p>
+      <div class="status" style="border-left-color:#22c55e; background: rgba(34,197,94,0.10); border-color: rgba(34,197,94,0.30);">
+        <div style="font-size:16px; margin-bottom:6px;"><b>571-342-2922</b></div>
+        <div style="color: var(--muted);">
+          Once payment is completed and confirmed, court reservation will be done for the specified time slot.
         </div>
       </div>
     </section>
 
     <section class="card">
       <h2 class="h2">Date &amp; Time</h2>
-      <div class="team" style="justify-content:flex-start; gap:14px;">
-        <div class="left">
-          <div><b>22nd February 2026</b></div>
-          <div class="tag"><b>9:30 AM to 2:00 PM</b></div>
-        </div>
+      <div class="status">
+        <div style="font-size:16px; margin-bottom:6px;"><b>22nd February 2026</b></div>
+        <div style="color: var(--muted);"><b>9:30 AM to 2:00 PM</b></div>
       </div>
     </section>
 
@@ -307,12 +363,10 @@
     </section>
 
     <footer class="footer">
-      <div style="text-align:center; margin: 30px 0;">
-  <img src="MBC2.jpeg"
-       alt="MBC"
-       style="max-width: 90%; height: auto; border-radius: 12px;" />
-</div>
-<marquee>MBC Tournament 2026 !!! </marquee>
+      <div class="img-wrap">
+        <img src="MBC2.jpeg" alt="MBC" />
+      </div>
+      <marquee>MBC Tournament 2026 !!!</marquee>
     </footer>
   </main>
 </body>
